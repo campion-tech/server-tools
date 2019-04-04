@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (C) 2013-2014 GRAP (http://www.grap.coop)
 # @author Sylvain LE GAL (https://twitter.com/legalsylvain)
 # License AGPL-3 - See http://www.gnu.org/licenses/agpl-3.0.html
@@ -17,7 +16,7 @@ class ResUsers(models.Model):
         """ Send a email to the admin of the system and / or the user
             to inform passkey use."""
         mail_obj = self.env['mail.mail'].sudo()
-        icp_obj = self.env['ir.config_parameter']
+        icp_obj = self.env['ir.config_parameter'].sudo()
 
         admin_user = self.sudo().browse(SUPERUSER_ID)
         login_user = self.browse(user_id)
@@ -71,7 +70,6 @@ class ResUsers(models.Model):
             is always called by a res.users record"""
         try:
             super(ResUsers, self).check_credentials(password)
-
             # If credentials are ok, try to log with user password as admin
             # user and send email if they are equal
             if self._uid != SUPERUSER_ID:

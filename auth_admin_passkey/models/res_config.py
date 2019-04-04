@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (C) 2013-2014 GRAP (http://www.grap.coop)
 # @author Sylvain LE GAL (https://twitter.com/legalsylvain)
 # License AGPL-3 - See http://www.gnu.org/licenses/agpl-3.0.html
@@ -7,24 +6,24 @@ from odoo import api, fields, models
 from odoo.tools import safe_eval
 
 
-class BaseConfigSettings(models.TransientModel):
-    _inherit = 'base.config.settings'
+class ResConfigSettings(models.TransientModel):
+    _inherit = 'res.config.settings'
 
     @api.model
-    def get_default_auth_admin_passkey_send_to_admin(self, fields):
-        icp = self.env['ir.config_parameter']
-        return {
-            'auth_admin_passkey_send_to_admin': safe_eval(icp.get_param(
-                'auth_admin_passkey.send_to_admin', 'True')),
-        }
+    def get_default_auth_admin_passkey_send_to_admin(self):
+        ICPSudo = self.env['ir.config_parameter'].sudo()
+        return safe_eval(ICPSudo.get_param(
+            'auth_admin_passkey.send_to_admin',
+            default=False
+        ))
 
     @api.model
-    def get_default_auth_admin_passkey_send_to_user(self, fields):
-        icp = self.env['ir.config_parameter']
-        return {
-            'auth_admin_passkey_send_to_user': safe_eval(icp.get_param(
-                'auth_admin_passkey.send_to_user', 'True')),
-        }
+    def get_default_auth_admin_passkey_send_to_user(self):
+        ICPSudo = self.env['ir.config_parameter'].sudo()
+        return safe_eval(ICPSudo.get_param(
+            'auth_admin_passkey.send_to_user',
+            default=False
+        ))
 
     auth_admin_passkey_send_to_admin = fields.Boolean(
         'Send email to admin user.',
@@ -39,20 +38,18 @@ class BaseConfigSettings(models.TransientModel):
               'to the account user.'),
     )
 
+    @api.model
+    def get_values(self):
+        res = super(ResConfigSettings, self).get_values()
+        res.update(
+            auth_admin_passkey_send_to_admin=self.get_default_auth_admin_passkey_send_to_admin(),
+            auth_admin_passkey_send_to_user=self.get_default_auth_admin_passkey_send_to_user()
+        )
+        return res
+
     @api.multi
-    def set_auth_admin_passkey_send_to_admin(self):
-        self.ensure_one()
-
-        icp = self.env['ir.config_parameter']
-        icp.set_param(
-            'auth_admin_passkey.send_to_admin',
-            repr(self.auth_admin_passkey_send_to_admin))
-
-    @api.multi
-    def set_auth_admin_passkey_send_to_user(self):
-        self.ensure_one()
-
-        icp = self.env['ir.config_parameter']
-        icp.set_param(
-            'auth_admin_passkey.send_to_user',
-            repr(self.auth_admin_passkey_send_to_user))
+    def set_values(self):
+        super(ResConfigSettings, self).set_values()
+        ICPSudo = self.env['ir.config_parameter'].sudo()
+        ICPSudo.set_param('auth_admin_passkey.send_to_admin', repr(self.auth_admin_passkey_send_to_admin))
+        ICPSudo.set_param('auth_admin_passkey.send_to_user', repr(self.auth_admin_passkey_send_to_user))
